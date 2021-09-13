@@ -3,25 +3,27 @@ CREATE database employee_tracker_db;
 
 USE employee_tracker_db;
 
-CREATE TABLE role (
-    id INT AUTO_INCREMENT NOT NULL,
-    title VARCHAR(30),
-    salary DECIMAL(10,2),
-    department_id INT(10)
+CREATE TABLE department (
+    id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    NAME VARCHAR(40 NOT NULL,
 );
 
-CREATE TABLE department (
-    id INT AUTO_INCREMENT NOT NULL,
-    name VARCHAR(30),
-    department_id INT(10)
+CREATE TABLE role (
+    id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    title VARCHAR(40) NOT NULL,
+    salary DECIMAL(10,2) NOT NULL,
+    department_id INT(10) NOT NULL,
+    CONSTRAINT fk_department FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE SET NULL
 );
 
 CREATE TABLE employee (
-    id INT AUTO_INCREMENT NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     first_name VARCHAR(30) NOT NULL,
     last_name VARCHAR(30) NOT NULL,
     role_id INT(10),
-    manager_id INT(10) NULL
+    manager_id INT(10)
+    CONSTRAINT fk_role FOREIGN KEY (role_id) REFERENCES role(id) ON DELETE SET NULL,
+    CONSTRAINT fk_manager FOREIGN KEY (manager_id) REFERENCES employee(id) ON DELETE SET NULL
 );
 
 
