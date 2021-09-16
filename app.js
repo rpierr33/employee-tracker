@@ -1,8 +1,8 @@
-const db = require("../db/connection");
+const db = require("./db/connection");
 const inquirer = require('inquirer');
 const fs = require("fs");
 const mysql = require('mysql2');
-const Connection = require("mysql2/typings/mysql/lib/Connection");
+// const Connection = require("mysql2/typings/mysql/lib/Connection");
 require('console.table');
 
 
@@ -54,7 +54,7 @@ const promptMenu = () => {
 };
 
         const selectDepartments = () => {
-            Connection.query(
+            db.query(
                 `SELECT * FROM department;`,
                 (err, results) => {
                     console.table(results);
@@ -64,7 +64,7 @@ const promptMenu = () => {
 
         
         const selectRoles = () => {
-            Connection.query(
+            db.query(
                 `SELECT * FROM role;`,
                 (err, results) => {
                     console.table(results);
@@ -73,7 +73,7 @@ const promptMenu = () => {
 
         };
         const selectEmployees = () => {
-            Connection.query(
+            db.query(
                 `SELECT E.id, E.first_name, E.last_name, R.title, D.name 
                 AS department, R.salary, 
                 CONCAT(M.first_name,' ',M.last_name) 
@@ -105,7 +105,7 @@ const promptMenu = () => {
                 }
             }])
                 .then(name => {
-                    Connection.promise().query(
+                    db.promise().query(
                         "INSERT INTO department SET ?", name);
                     selectDepartments();
                 })
@@ -272,56 +272,79 @@ const promptMenu = () => {
 
         const promptUpdateRole = () => {
             return connection.promise().query(
+                "SELECT R.id, R.title, R.salary, R.department_id FROM role R;"
             )
+            .then(([roles]) => {
+                let roleChoices = roles.map(({
+                    id,
+                    title
+                }) => ({
+                    value: id,
+                    name: title
+                }));
+
+                inquirer.prompt(
+                    [{
+                        type: 'list',
+                        name: 'role',
+                        message: 'Which role would you like to update?',
+                        choices: roleChoices
+
+                    }
+                ]
+            )
+
+                    .then(role => {
+                        console.log(role);
+                        inquirer.prompt(
+                            [{
+                                type: 'input',
+                                name: 'title',
+                                message: 'Enter the name of your title (Required)',
+                                choices: roleChoices,
+                                validate: titleName => {
+                                    if (titleName) {
+                                        return true;
+                                    } else {
+                                        console.log('Please enter title name!');
+                                        return false;
+                                    }
+                                }
+                            },
+
+                            {
+                                type: 'input',
+                                name: 'salary',
+                                message: 'Enter your salary (Required)',
+                                validate: salary => {
+                                    if (salary) {
+                                        return true;
+                                    } else {
+                                        console.log('Please enter your salary!');
+                                        return false;
+                                    }
+                                }
+                            }]
+                    )
+                    .then(({title, salary}) => {
+                        const query = connection.query(
+                            'UPDATE role SET title = ?, salary = ? WHERE id = ?',
+                            [
+                                title,
+                                salary
+                            ],
+                            function (err, res) {
+                                if (err) throw err;
+                            }
+                        
+                    )
+                    })
+                    .then(() => promptMenu())
+                })
+                
+            });
         };
 
+        promptMenu();
 
 
-
-
-
-
-
-
-
-//         inquirer.prompt(
-//             [{
-//                 type: 'input',
-//                 name: 'title',
-//                 message: 'Enter the name of your title (Required)',
-//                 validate: titleName => {
-//                     if (departmentName) {
-//                         return true;
-//                     } else {
-//                         console.log('Please enter title name!');
-//                         return false;
-//                     }
-//                 }
-//             },
-//             {
-//                 type: 'list';
-//                 name: 'department',
-//                 message: 'Which department are you from?',
-//                 choices: departmentChoice
-//             },
-//             {
-//                 type: 'input';
-//                 name: 'title',
-//                 message: 'Enter the name of your title (Required)',
-//                 validate: salary => {
-//                     if (salary) {
-//                         return true;
-//                     } else {
-//                         console.log('Please enter your salary!');
-//                         return false;
-//                     }
-//                 }
-//             }   
-//         ]
-//     )
-//     .then(name => {
-//         Connection.promise().query(
-//             "INSERT INTO department SET ?",
-
-
-// };
