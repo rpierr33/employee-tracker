@@ -2,6 +2,7 @@ const db = require("../db/connection");
 const inquirer = require('inquirer');
 const fs = require("fs");
 const mysql = require('mysql2');
+const Connection = require("mysql2/typings/mysql/lib/Connection");
 require('console.table');
 
 
@@ -40,6 +41,56 @@ const promptMenu = () => {
                 default:
                     process.exit;
             }
-        })
-}
+        });
+};
 
+        const selectDepartments = () => {
+            Connection.query(
+                `SELECT * FROM department;`
+                (err, results) => {
+                    console.table(results);
+                    promptMenu();
+            }
+
+        )
+    };
+
+        const selectRoles = () => {
+            Connection.query(
+                `SELECT * FROM department;`
+                (err, results) => {
+                    console.table(results);
+                    promptMenu();
+                });
+
+        };
+        const selectEmployees = () => {
+            Connection.query(
+                `SELECT candidates.*, parties.name AS party_name, 
+                COUNT(candidate_id) 
+                AS count FROM votes 
+                LEFT JOIN candidates ON votes.candidate_id = candidates.id 
+                LEFT JOIN parties ON candidates.party_id = parties.id 
+                GROUP BY candidate_id 
+                ORDER BY count DESC`;
+                (err, results) => {
+                    console.table(results);
+                    promptMenu();
+                });
+
+        };
+
+
+
+
+        prompt.promptAddDepartment = () => {
+
+        };
+
+        prompt.promptAddRole = () => {
+
+        };
+
+        prompt.promptUpdateRole = () => {
+
+        };
