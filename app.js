@@ -6,6 +6,15 @@ const mysql = require('mysql2');
 require('console.table');
 
 
+db.connect((err) => {
+    if (err) throw err;
+    console.log("connecting to DB");
+    console.log("please wait...");
+    // chalk.karaoke(
+    //     " _____                   _                           \n|  ___|                 | |                          \n| |__  _ __ ___   _ __  | |  ___   _   _   ___   ___ \n|  __|| '_ ` _ \\ | '_ \\ | | / _ \\ | | | | / _ \\ / _ \\\n| |___| | | | | || |_) || || (_) || |_| ||  __/|  __/\n\\____/|_| |_| |_|| .__/ |_| \\___/  \\__, | \\___| \\___|\n___  ___         | |                __/ |            \n|  \\/  |         |_|               |___/             \n| .  . |  __ _  _ __    __ _   __ _   ___  _ __      \n| |\\/| | / _` || '_ \\  / _` | / _` | / _ \\| '__|     \n| |  | || (_| || | | || (_| || (_| ||  __/| |        \n\\_|  |_/ \\__,_||_| |_| \\__,_| \\__, | \\___||_|        \n                               __/ |                 \n                              |___/                  "
+    //   );
+    });
+
 const promptMenu = () => {
     return inquirer.prompt([
         {
@@ -14,9 +23,9 @@ const promptMenu = () => {
             message: 'What would you like to do?',
             choices: 
             [
-                'view all departments', 
-                'view all roles', 
-                'view all employees', 
+                'select departments', 
+                'select all roles', 
+                'select all employees', 
                 'add a department', 
                 'add a role', 
                 'add an employee', 
@@ -25,17 +34,21 @@ const promptMenu = () => {
 
         }])
         .then(userChoice => {
-            switch (userChoice.choice.menu) {
-                case 'view all departments':
+            console.log('userCHoice', userChoice)
+            var thing = {
+                menue: 'select all'
+            }
+            switch (userChoice.menu) {
+                case 'select departments':
                     selectDepartments();
                     break;
-                case 'view all roles':
+                case 'select all roles' :
                     selectRoles();
                     break;
-                case 'view all employees':
+                case 'select all employees':
                     selectEmployees();
                     break;
-                case 'add a departments':
+                case 'add a department':
                     promptAddDepartment();
                     break;
                 case 'add a role':
@@ -54,6 +67,7 @@ const promptMenu = () => {
 };
 
         const selectDepartments = () => {
+            console.log('Select all departs happening!!!!!')
             db.query(
                 `SELECT * FROM department;`,
                 (err, results) => {
@@ -64,23 +78,21 @@ const promptMenu = () => {
 
         
         const selectRoles = () => {
+            console.log('INSIDE SECLECT ROLE FUNCTION!!')
+            // name
+             //last name
             db.query(
-                `SELECT * FROM role;`,
+                'SELECT * FROM role;',
                 (err, results) => {
                     console.table(results);
                     promptMenu();
                 });
 
         };
+
         const selectEmployees = () => {
             db.query(
-                `SELECT E.id, E.first_name, E.last_name, R.title, D.name 
-                AS department, R.salary, 
-                CONCAT(M.first_name,' ',M.last_name) 
-                AS manager FROM employee 
-                E JOIN role R ON E.role_id = R.id 
-                JOIN department D ON R.department_id = D.id 
-                LEFT JOIN employee M ON E.manager_id = M.id;`,
+                "SELECT E.id, E.first_name, E.last_name, R.title, D.name AS department, R.salary, CONCAT(M.first_name,' ',M.last_name) AS manager FROM employee E JOIN role R ON E.role_id = R.id JOIN department D ON R.department_id = D.id LEFT JOIN employee M ON E.manager_id = M.id;",
                 (err, results) => {
                     console.table(results);
                     promptMenu();
@@ -93,7 +105,7 @@ const promptMenu = () => {
         const promptAddDepartment = () => {
             inquirer.prompt([{
                 type: 'input',
-                name: 'name',
+                name: 'deptName',
                 message: 'Name the department you would like to add',
                 validate: departmentName => {
                     if (departmentName) {
@@ -104,17 +116,18 @@ const promptMenu = () => {
                     }
                 }
             }])
-                .then(name => {
+                .then(answer => {
                     db.promise().query(
-                        "INSERT INTO department SET ?", name);
-                    selectDepartments();
+                        "INSERT INTO department (name) VALUES (?)", [answer.deptName]);
+                        
+                        promptMenu();
                 })
         }
 
         const promptAddRole = () => {
-            return connection.promise().query(
-            "SELECT department.id, department.name FROM department;"
-            )
+            return db.promise().query(
+                "SELECT department.id, department.name FROM department;"
+                )
             .then(([departments]) => {
                 let departmentChoice = departments.map(({
                     id,
@@ -159,9 +172,11 @@ const promptMenu = () => {
                     }   
                 ]
             )
-            .then(({title, depaartment, salary}) => {
-                const query = connection.query(
-                    "INSERT INTO department SET ?",
+
+            //.then(({ title, department, salary }) => {
+                .then(({ title, department, salary }) => {
+                const query = db.promise().query(
+                    'INSERT INTO role SET ?',
                     {
                         title: title,
                         department_id: department,
@@ -170,31 +185,29 @@ const promptMenu = () => {
                     function (err, res) {
                         if (err) throw err;
                     }
-                
-            )
-            })
-            .then(() => selectRoles())
-        })
-        
-    };
+                )
+            }).then(() => selectRoles())
 
+    })
+}
 
-        const promptAddEmployee = () => {
-        return connection.promise().query(
-            "SELECT R.id, R.title FROM role R;"
+const promptAddEmployee = (roles) => {
+
+    return db.promise().query(
+        "SELECT R.id, R.title FROM role R;"
     )
-            .then(([employees]) => {
-                let titleChoices = employees.map(({
-                    id,
-                    title
+        .then(([employees]) => {
+            let titleChoices = employees.map(({
+                id,
+                title
 
-                }) => ({
-                    value: id,
-                    name: title
-                }))
+            }) => ({
+                value: id,
+                name: title
+            }))
 
-        connection.promise().query(
-            "SELECT E.id,  CONCATE(E.first_name, ' ', E.last_name) AS manager FROM employee E;"
+            db.promise().query(
+                "SELECT E.id, CONCAT(E.first_name,' ',E.last_name) AS manager FROM employee E;"
             ).then(([managers]) => {
                 let managerChoices = managers.map(({
                     id,
@@ -213,7 +226,7 @@ const promptMenu = () => {
                             if (firstName) {
                                 return true;
                             } else {
-                                console.log("Please enter the employee's first name!");
+                                console.log('Please enter the employees first name!');
                                 return false;
                             }
                         }
@@ -221,130 +234,123 @@ const promptMenu = () => {
                     {
                         type: 'input',
                         name: 'lastName',
-                        message: "What is the employee's last name (Required)",
+                        message: 'What is the employees last name (Required)',
                         validate: lastName => {
                             if (lastName) {
                                 return true;
                             } else {
-                                console.log("Please enter the employee's last name!");
+                                console.log('Please enter the employees last name!');
                                 return false;
                             }
                         }
                     },
-
                     {
                         type: 'list',
                         name: 'role',
-                        message: "Which is the employee's role?",
+                        message: 'What is the employees role?',
                         choices: titleChoices
                     },
                     {
                         type: 'list',
                         name: 'manager',
-                        message: "Who is the employee's manager",
+                        message: 'Who is the employees manager?',
                         choices: managerChoices
-                    },  
-                ]
-            )
-            .then(({firstName, lastName, role, manager}) => {
-                const query = connection.query(
-                    "INSERT INTO employee SET ?",
-                    {
-                        first_name: firstName,
-                        last_name: lastName,
-                        role_id: role,
-                        manager_id: manager
-                    },
-                    function (err, res) {
-                        if (err) throw err;
-                        console.log({role, manager})
                     }
-                
-            )
-            })
-            .then(() => selectEmployees())
-        })
-        })
-        
-    };
-        
 
-
-        const promptUpdateRole = () => {
-            return connection.promise().query(
-                "SELECT R.id, R.title, R.salary, R.department_id FROM role R;"
-            )
-            .then(([roles]) => {
-                let roleChoices = roles.map(({
-                    id,
-                    title
-                }) => ({
-                    value: id,
-                    name: title
-                }));
-
-                inquirer.prompt(
-                    [{
-                        type: 'list',
-                        name: 'role',
-                        message: 'Which role would you like to update?',
-                        choices: roleChoices
-
-                    }
-                ]
-            )
-
-                    .then(role => {
-                        console.log(role);
-                        inquirer.prompt(
-                            [{
-                                type: 'input',
-                                name: 'title',
-                                message: 'Enter the name of your title (Required)',
-                                choices: roleChoices,
-                                validate: titleName => {
-                                    if (titleName) {
-                                        return true;
-                                    } else {
-                                        console.log('Please enter title name!');
-                                        return false;
-                                    }
-                                }
-                            },
-
+                    ])
+                    .then(({ firstName, lastName, role, manager }) => {
+                        const query = db.query(
+                            'INSERT INTO employee SET ?',
                             {
-                                type: 'input',
-                                name: 'salary',
-                                message: 'Enter your salary (Required)',
-                                validate: salary => {
-                                    if (salary) {
-                                        return true;
-                                    } else {
-                                        console.log('Please enter your salary!');
-                                        return false;
-                                    }
-                                }
-                            }]
-                    )
-                    .then(({title, salary}) => {
-                        const query = connection.query(
-                            'UPDATE role SET title = ?, salary = ? WHERE id = ?',
-                            [
-                                title,
-                                salary
-                            ],
+                                first_name: firstName,
+                                last_name: lastName,
+                                role_id: role,
+                                manager_id: manager
+                            },
                             function (err, res) {
                                 if (err) throw err;
+                                console.log({ role, manager })
                             }
-                        
-                    )
+                        )
                     })
-                    .then(() => promptMenu())
+                    .then(() => selectEmployees())
+            })
+        })
+}
+
+const promptUpdateRole = () => {
+
+    return db.promise().query(
+        "SELECT R.id, R.title, R.salary, R.department_id FROM role R;"
+    )
+        .then(([roles]) => {
+            let roleChoices = roles.map(({
+                id,
+                title
+
+            }) => ({
+                value: id,
+                name: title
+            }));
+
+            inquirer.prompt(
+                [
+                    {
+                        type: 'list',
+                        name: 'role',
+                        message: 'Which role do you want to update?',
+                        choices: roleChoices
+                    }
+                ]
+            )
+                .then(role => {
+                    console.log(role);
+                    inquirer.prompt(
+                        [{
+                            type: 'input',
+                            name: 'title',
+                            message: 'Enter the name of your title (Required)',
+                            validate: titleName => {
+                                if (titleName) {
+                                    return true;
+                                } else {
+                                    console.log('Please enter your title name!');
+                                    return false;
+                                }
+                            }
+                        },
+                        {
+                            type: 'input',
+                            name: 'salary',
+                            message: 'Enter your salary (Required)',
+                            validate: salary => {
+                                if (salary) {
+                                    return true;
+                                } else {
+                                    console.log('Please enter your salary!');
+                                    return false;
+                                }
+                            }
+                        }]
+                    )
+                        .then(({ title, salary }) => {
+                            const query = db.query(
+                                'UPDATE role SET title = ?, salary = ? WHERE id = ?',
+                                [
+                                    title,
+                                    salary
+                                    ,
+                                    role.role
+                                ],
+                                function (err, res) {
+                                    if (err) throw err;
+                                }
+                            )
+                        })
+                        .then(() => promptMenu())
                 })
-                
-            });
-        };
+        });
 
-        promptMenu();
+};
 
-
+promptMenu();
