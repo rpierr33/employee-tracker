@@ -16,7 +16,7 @@ use mysql -u root -p to lauch mysql and enter password if need be.
 ## Test
 ![GitHub license](https://img.shields.io/badge/test-100%25-success)
 ## Technology Used
-JS, mysql, npm,
+Node.js, Inquirer, and My SQL.
 
 ## Contributors
 Mrralphpierre
