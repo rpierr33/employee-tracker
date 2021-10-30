@@ -13,7 +13,7 @@ db.connect((err) => {
     const rainbow = chalkAnimation.rainbow('Empoyee Manager');
     setTimeout(() => {
         rainbow.stop(); // Animation stops
-    }, 5000);
+    }, 3000);
     promptMenu();
 
     
