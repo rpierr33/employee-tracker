@@ -2,7 +2,7 @@ const db = require("./db/connection");
 const inquirer = require('inquirer');
 const fs = require("fs");
 const mysql = require('mysql2');
-// const Connection = require("mysql2/typings/mysql/lib/Connection");
+const chalkAnimation = require('chalk-animation');
 require('console.table');
 
 
@@ -10,10 +10,16 @@ db.connect((err) => {
     if (err) throw err;
     console.log("connecting to DB");
     console.log("please wait...");
-    // chalk.karaoke(
-    //     " _____                   _                           \n|  ___|                 | |                          \n| |__  _ __ ___   _ __  | |  ___   _   _   ___   ___ \n|  __|| '_ ` _ \\ | '_ \\ | | / _ \\ | | | | / _ \\ / _ \\\n| |___| | | | | || |_) || || (_) || |_| ||  __/|  __/\n\\____/|_| |_| |_|| .__/ |_| \\___/  \\__, | \\___| \\___|\n___  ___         | |                __/ |            \n|  \\/  |         |_|               |___/             \n| .  . |  __ _  _ __    __ _   __ _   ___  _ __      \n| |\\/| | / _` || '_ \\  / _` | / _` | / _ \\| '__|     \n| |  | || (_| || | | || (_| || (_| ||  __/| |        \n\\_|  |_/ \\__,_||_| |_| \\__,_| \\__, | \\___||_|        \n                               __/ |                 \n                              |___/                  "
-    //   );
-    });
+    const rainbow = chalkAnimation.rainbow('Empoyee Manager');
+    setTimeout(() => {
+        rainbow.stop(); // Animation stops
+    }, 3000);
+    promptMenu();
+
+    
+
+});
+
 
 const promptMenu = () => {
     return inquirer.prompt([
@@ -30,6 +36,7 @@ const promptMenu = () => {
                 'add a role', 
                 'add an employee', 
                 'update an employee role', 
+                'delete an employee', 
                 'exit']
 
         }])
@@ -59,7 +66,10 @@ const promptMenu = () => {
                     break;
                     case 'update an employee role':
                     promptUpdateRole();
-                    break;    
+                    break;   
+                case 'delete an employee':
+                    deleteEmployee();
+                    break;     
                 default:
                     process.exit;
             }
@@ -352,5 +362,40 @@ const promptUpdateRole = () => {
         });
 
 };
+
+// const deleteEmployee = () => {
+//     console.log('Select all departs happening!!!!!')
+//             db.query(
+//                 `SELECT * FROM employee;`,
+//                 (err, results) => {
+//                     console.table(results);
+    
+//         }   
+
+     
+//     router.delete('/employee/:id', (req, res) => {
+//         const sql = `DELETE FROM employee WHERE id = ?`;
+      
+//         db.query(sql, req.params.id, (err, result) => {
+//           if (err) {
+//             res.status(400).json({ error: res.message });
+//           } else if (!result.affectedRows) {
+//             res.json({
+//               message: 'Employee not found'
+//             });
+//           } else {
+//             res.json({
+//               message: 'deleted',
+//               changes: result.affectedRows,
+//               id: req.params.id
+//             });
+//           }
+//         });
+//       });
+//        promptMenu();
+
+
+
+
 
 promptMenu();
