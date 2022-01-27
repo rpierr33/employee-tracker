@@ -46,3 +46,6 @@ Made with [contrib.rocks](https://contrib.rocks).
 - Inquirer
 - My SQL
 
+## Questions
+My Github username is rpierr33, and can be accessed here https://github.com/rpierr33
+You can reach me at mrralphpierre@gmail.com if you have any additional questions.
